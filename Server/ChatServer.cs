@@ -38,7 +38,7 @@ namespace MidChat.Server // Espace de noms
                        if (bytesRead == 0)
                            break; //Déconnexion du client
 
-                       string message = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
+                       string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                        Console.WriteLine($"Reçu: {message}");
                     }
                 }
