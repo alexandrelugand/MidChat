@@ -6,6 +6,8 @@ namespace MidChat.Server // Espace de noms
 {
     internal class ChatServer : System.Object
     {
+        private static List<TcpClient> TcpClients = new List<TcpClient>();
+
         public void Run() //Methode
         {
             const int port = 5000;
@@ -17,6 +19,7 @@ namespace MidChat.Server // Espace de noms
             {
                 TcpClient client = listener.AcceptTcpClient();
                 Console.WriteLine("Client connecté");
+                TcpClients.Add(client);
 
                 var thread = new Thread(HandleClient);
                 thread.Start(client);
@@ -34,12 +37,23 @@ namespace MidChat.Server // Espace de noms
 
                     while (true)
                     {
-                       int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                       if (bytesRead == 0)
-                           break; //Déconnexion du client
+                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                        if (bytesRead == 0)
+                            break; //Déconnexion du client
 
-                       string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                       Console.WriteLine($"Reçu: {message}");
+                        string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                        Console.WriteLine($"Reçu: {message}");
+
+                        foreach (var client in TcpClients)
+                        {
+                            if (client == tcpClient)
+                                continue; //Ne pas renvoyer au client émetteur
+
+                            var clientStream = client.GetStream();
+                            byte[] data = Encoding.ASCII.GetBytes(message);
+                            clientStream.Write(data, 0, data.Length);
+                            clientStream.Flush();
+                        }
                     }
                 }
             }
